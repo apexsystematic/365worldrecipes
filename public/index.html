@@ -962,6 +962,7 @@ Generate exactly ${batch} recipes now.`;
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'API error');
     const text = data.text || '';
+    if (!text) throw new Error('Empty response from API');
     const clean = text.replace(/```json|```/g, '').trim();
     const newRecipes = JSON.parse(clean);
 
@@ -974,7 +975,7 @@ Generate exactly ${batch} recipes now.`;
     showToast(`✨ ${newRecipes.length} new recipes added!`);
   } catch (err) {
     console.error(err);
-    showToast('Something went wrong. Please try again.');
+    showToast('Error: ' + (err.message || 'Something went wrong. Please try again.'));
   } finally {
     btn.disabled = false;
     btnText.textContent = '✨ Generate More Recipes';
