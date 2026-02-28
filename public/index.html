@@ -1092,10 +1092,10 @@ const TARGET = 365;
 // ─── STORAGE ───────────────────────────────────────────────────────────────────
 async function loadStoredRecipes() {
   try {
+    if (!window.storage) return;
     const result = await window.storage.get('extra-recipes');
     if (result && result.value) {
       const stored = JSON.parse(result.value);
-      // Merge, avoiding duplicates by id
       const existingIds = new Set(allRecipes.map(r => r.id));
       stored.forEach(r => { if (!existingIds.has(r.id)) { allRecipes.push(r); existingIds.add(r.id); } });
     }
@@ -1104,8 +1104,8 @@ async function loadStoredRecipes() {
 
 async function saveRecipes(newRecipes) {
   try {
-    // Save all non-seed recipes
-    const toStore = allRecipes.filter(r => r.id > 120);
+    if (!window.storage) return;
+    const toStore = allRecipes.filter(r => r.id > 365);
     await window.storage.set('extra-recipes', JSON.stringify(toStore));
   } catch(e) { console.log('Storage error:', e); }
 }
@@ -1355,7 +1355,7 @@ document.addEventListener('keydown', e => {
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 (async () => {
-  await loadStoredRecipes();
+  try { await loadStoredRecipes(); } catch(e) { /* continue without stored recipes */ }
   applyFilters();
 })();
 </script>
