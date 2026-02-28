@@ -971,7 +971,20 @@ Generate exactly ${batch} recipes now.`;
     const arrayEnd = clean.lastIndexOf(']');
     if (arrayStart === -1 || arrayEnd === -1) throw new Error('No JSON array found in response');
     clean = clean.slice(arrayStart, arrayEnd + 1);
-    const newRecipes = JSON.parse(clean);
+    let newRecipes;
+    try {
+      newRecipes = JSON.parse(clean);
+    } catch(parseErr) {
+      console.error('RAW RESPONSE:', text);
+      console.error('CLEANED:', clean);
+      showError('JSON parse failed: ' + parseErr.message + '<br><small>Check browser console (F12) for raw response.</small>');
+      return;
+    }
+
+    if (!Array.isArray(newRecipes) || newRecipes.length === 0) {
+      showError('API returned no recipes. Try again.');
+      return;
+    }
 
     // Re-index IDs to avoid collisions
     newRecipes.forEach((r, i) => { r.id = nextId + i; });
@@ -979,10 +992,11 @@ Generate exactly ${batch} recipes now.`;
     allRecipes = [...allRecipes, ...newRecipes];
     await saveRecipes(newRecipes);
     applyFilters();
+    hideError();
     showToast(`✨ ${newRecipes.length} new recipes added!`);
   } catch (err) {
     console.error(err);
-    showToast('Error: ' + (err.message || 'Something went wrong. Please try again.'));
+    showError('Error: ' + (err.message || 'Something went wrong. Please try again.'));
   } finally {
     btn.disabled = false;
     btnText.textContent = '✨ Generate More Recipes';
@@ -995,6 +1009,23 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function showError(msg) {
+  let box = document.getElementById('errorBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'errorBox';
+    box.style.cssText = 'background:#fff0ee;border:2px solid #C4512A;border-radius:10px;padding:16px 20px;margin-top:20px;color:#7a1a00;font-size:0.88rem;line-height:1.6;';
+    document.getElementById('loadMoreSection').appendChild(box);
+  }
+  box.innerHTML = '⚠️ ' + msg;
+  box.style.display = 'block';
+}
+
+function hideError() {
+  const box = document.getElementById('errorBox');
+  if (box) box.style.display = 'none';
 }
 
 // ─── EVENTS ────────────────────────────────────────────────────────────────────
