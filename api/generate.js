@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   if (!prompt) return res.status(400).json({ error: 'No prompt provided' });
 
   // Try models in order until one works
-  const models = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+  const models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
 
   for (const model of models) {
     try {
