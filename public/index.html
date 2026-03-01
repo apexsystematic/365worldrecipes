@@ -675,17 +675,13 @@
 
   <div class="recipe-grid" id="recipeGrid"></div>
 
-  <div class="load-more-section" id="loadMoreSection" style="display:none">
-    <div class="load-more-title">More Recipes Await</div>
-    <div class="load-more-desc" id="loadMoreDesc"></div>
+  <div class="load-more-section" id="loadMoreSection">
+    <div class="load-more-title">🎉 All 365 Recipes Loaded!</div>
+    <div class="load-more-desc">You have a full year of world recipes. Happy cooking!</div>
     <div class="progress-bar-wrap">
-      <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+      <div class="progress-bar-fill" id="progressBar" style="width:100%"></div>
     </div>
-    <div class="progress-label" id="progressLabel"></div>
-    <br><br>
-    <button class="btn-primary" id="loadMoreBtn" onclick="loadMoreRecipes()">
-      <span id="loadMoreBtnText">✨ Generate More Recipes</span>
-    </button>
+    <div class="progress-label" id="progressLabel">365 of 365 recipes</div>
   </div>
 </main>
 
@@ -1079,7 +1075,6 @@ const SEED_RECIPES = [
   { id:119, name:"Beignets", cuisine:"Creole/French", country:"USA", emoji:"🍩", flag:"🇺🇸", time:35, servings:20, difficulty:2, vegetarian:true, region:"north-american", desc:"Pillowy fried New Orleans doughnuts buried in powdered sugar.", ingredients:["300g plain flour","1 tsp instant yeast","1 tbsp sugar","1 egg","150ml warm milk","50ml warm water","1 tbsp butter, melted","½ tsp salt","Oil for frying","Icing sugar to serve"], steps:["Mix all ingredients into a soft dough. It should be slightly sticky.","Cover and rest 1 hour until doubled.","Roll out to 5mm, cut into squares.","Heat oil to 180°C.","Fry in batches 2 min per side until puffed and golden.","Drain briefly, then immediately bury in icing sugar.","Serve hot."] },
   { id:120, name:"Oxtail Stew", cuisine:"Jamaican/Caribbean", country:"Jamaica", emoji:"🫕", flag:"🇯🇲", time:60, servings:6, difficulty:2, vegetarian:false, region:"latin-american", desc:"Slow-braised oxtail in a rich, spiced gravy with butter beans.", ingredients:["1.2kg oxtail pieces","1 can butter beans","2 onions, diced","4 garlic cloves","3 spring onions","2 tsp allspice","1 Scotch bonnet pepper","2 tbsp browning sauce or soy sauce","1 can diced tomatoes","600ml beef stock","Thyme, bay leaf","Oil, salt, pepper"], steps:["Season oxtail with allspice, browning sauce, salt and pepper. Rest 30 min.","Brown oxtail well all over in oil. Set aside.","Sauté onions and garlic 5 min.","Return oxtail, add tomatoes, stock, herbs and Scotch bonnet.","Simmer covered 50 min until very tender.","Add butter beans last 10 min.","Serve over white rice."] },
   { id:60, name:"Macarons", cuisine:"French", country:"France", emoji:"🫐", flag:"🇫🇷", time:60, servings:20, difficulty:3, vegetarian:true, region:"european", desc:"Delicate almond meringue shells with flavoured ganache filling.", ingredients:["200g icing sugar","120g ground almonds","3 egg whites (aged)","30g caster sugar","Pinch cream of tartar","For ganache: 100g dark chocolate, 80ml cream, 20g butter"], steps:["Sift icing sugar and almonds together twice.","Whip egg whites with cream of tartar until foamy. Add caster sugar, whip to stiff peaks.","Fold dry ingredients into meringue (macaronage) until lava-like.","Pipe 3cm circles onto lined tray. Tap to release bubbles.","Rest 30–40 min until skin forms.","Bake at 150°C for 14 min.","Cool completely. Fill pairs with ganache."] }
-];."] }
 ];
 
 // ─── STATE ─────────────────────────────────────────────────────────────────────
@@ -1089,26 +1084,7 @@ let activeFilter = 'all';
 let searchQuery = '';
 const TARGET = 365;
 
-// ─── STORAGE ───────────────────────────────────────────────────────────────────
-async function loadStoredRecipes() {
-  try {
-    if (!window.storage) return;
-    const result = await window.storage.get('extra-recipes');
-    if (result && result.value) {
-      const stored = JSON.parse(result.value);
-      const existingIds = new Set(allRecipes.map(r => r.id));
-      stored.forEach(r => { if (!existingIds.has(r.id)) { allRecipes.push(r); existingIds.add(r.id); } });
-    }
-  } catch(e) { /* No stored recipes yet */ }
-}
 
-async function saveRecipes(newRecipes) {
-  try {
-    if (!window.storage) return;
-    const toStore = allRecipes.filter(r => r.id > 365);
-    await window.storage.set('extra-recipes', JSON.stringify(toStore));
-  } catch(e) { console.log('Storage error:', e); }
-}
 
 // ─── RENDER ────────────────────────────────────────────────────────────────────
 function applyFilters() {
@@ -1167,13 +1143,6 @@ function updateCounts() {
   document.getElementById('progressBar').style.width = pct + '%';
   document.getElementById('progressLabel').textContent = `${allRecipes.length} of ${TARGET} recipes`;
 
-  const remaining = TARGET - allRecipes.length;
-  if (remaining > 0) {
-    document.getElementById('loadMoreSection').style.display = 'block';
-    document.getElementById('loadMoreDesc').textContent = `${remaining} more recipes to go until you have a full year of cooking!`;
-  } else {
-    document.getElementById('loadMoreSection').innerHTML = `<div class="load-more-title">🎉 All 365 Recipes Loaded!</div><div class="load-more-desc">You have a full year of world recipes. Happy cooking!</div>`;
-  }
 }
 
 // ─── MODAL ─────────────────────────────────────────────────────────────────────
@@ -1211,128 +1180,7 @@ function closeModal(e) {
   if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
 }
 
-// ─── GENERATE MORE RECIPES ──────────────────────────────────────────────────────
-async function loadMoreRecipes() {
-  const btn = document.getElementById('loadMoreBtn');
-  const btnText = document.getElementById('loadMoreBtnText');
-  btn.disabled = true;
-  btnText.innerHTML = '<span class="loading-spinner"></span> Generating…';
 
-  const remaining = TARGET - allRecipes.length;
-  const batch = Math.min(30, remaining);
-  const existingNames = allRecipes.map(r => r.name).join(', ');
-  const nextId = Math.max(...allRecipes.map(r => r.id)) + 1;
-
-  // Regions to draw from, cycling
-  const regionsNeeded = ['asian', 'european', 'african', 'latin-american', 'middle-eastern', 'north-american'];
-
-  const prompt = `You are a world cuisine expert. Generate exactly ${batch} unique, highly-rated recipes from diverse cuisines around the world.
-
-Rules:
-- Each recipe must be from a DIFFERENT country/cuisine (spread across ALL regions)
-- All simple, easy-to-cook recipes with basic cookware
-- No processed foods — only whole, fresh ingredients
-- Under 60 minutes total from start to finish
-- DO NOT repeat any of these existing recipes: ${existingNames}
-- Include recipes from: Africa, Asia, Europe, Latin America, Middle East, North America, Oceania — spread evenly
-
-Return ONLY valid JSON array, no markdown, no explanation:
-[
-  {
-    "id": ${nextId},
-    "name": "Recipe Name",
-    "cuisine": "Cuisine Type",
-    "country": "Country",
-    "emoji": "single food emoji",
-    "flag": "country flag emoji",
-    "time": 25,
-    "servings": 4,
-    "difficulty": 1,
-    "vegetarian": false,
-    "region": "asian|european|african|latin-american|middle-eastern|north-american",
-    "desc": "One sentence description",
-    "ingredients": ["ingredient 1 with quantity", "ingredient 2"],
-    "steps": ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"]
-  }
-]
-
-Generate exactly ${batch} recipes now.`;
-
-  try {
-    const response = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'API error');
-    const text = data.text || '';
-    if (!text) throw new Error('Empty response from API');
-
-    // Strip markdown fences and find the JSON array
-    let clean = text.replace(/```json|```/g, '').trim();
-    // Find the JSON array in case there's surrounding text
-    const arrayStart = clean.indexOf('[');
-    const arrayEnd = clean.lastIndexOf(']');
-    if (arrayStart === -1 || arrayEnd === -1) throw new Error('No JSON array found in response');
-    clean = clean.slice(arrayStart, arrayEnd + 1);
-    let newRecipes;
-    try {
-      newRecipes = JSON.parse(clean);
-    } catch(parseErr) {
-      console.error('RAW RESPONSE:', text);
-      console.error('CLEANED:', clean);
-      showError('JSON parse failed: ' + parseErr.message + '<br><small>Check browser console (F12) for raw response.</small>');
-      return;
-    }
-
-    if (!Array.isArray(newRecipes) || newRecipes.length === 0) {
-      showError('API returned no recipes. Try again.');
-      return;
-    }
-
-    // Re-index IDs to avoid collisions
-    newRecipes.forEach((r, i) => { r.id = nextId + i; });
-
-    allRecipes = [...allRecipes, ...newRecipes];
-    await saveRecipes(newRecipes);
-    applyFilters();
-    hideError();
-    showToast(`✨ ${newRecipes.length} new recipes added!`);
-  } catch (err) {
-    console.error(err);
-    showError('Error: ' + (err.message || 'Something went wrong. Please try again.'));
-  } finally {
-    btn.disabled = false;
-    btnText.textContent = '✨ Generate More Recipes';
-  }
-}
-
-// ─── TOAST ────────────────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-function showError(msg) {
-  let box = document.getElementById('errorBox');
-  if (!box) {
-    box = document.createElement('div');
-    box.id = 'errorBox';
-    box.style.cssText = 'background:#fff0ee;border:2px solid #C4512A;border-radius:10px;padding:16px 20px;margin-top:20px;color:#7a1a00;font-size:0.88rem;line-height:1.6;';
-    document.getElementById('loadMoreSection').appendChild(box);
-  }
-  box.innerHTML = '⚠️ ' + msg;
-  box.style.display = 'block';
-}
-
-function hideError() {
-  const box = document.getElementById('errorBox');
-  if (box) box.style.display = 'none';
-}
 
 // ─── EVENTS ────────────────────────────────────────────────────────────────────
 document.getElementById('searchInput').addEventListener('input', e => {
@@ -1354,10 +1202,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-(async () => {
-  try { await loadStoredRecipes(); } catch(e) { /* continue without stored recipes */ }
-  applyFilters();
-})();
+applyFilters();
 </script>
 </body>
 </html>
