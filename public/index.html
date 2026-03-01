@@ -100,28 +100,45 @@
     background: var(--card-bg);
     border-bottom: 1px solid var(--border);
     padding: 0 32px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   }
-
-  .filters-bar::-webkit-scrollbar { display: none; }
 
   .filters-inner {
     max-width: 1400px;
     margin: 0 auto;
+    padding: 10px 0;
     display: flex;
+    flex-direction: column;
     gap: 8px;
-    padding: 12px 0;
-    white-space: nowrap;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--warm-gray);
+    min-width: 52px;
+    opacity: 0.6;
   }
 
   .filter-btn {
-    padding: 6px 16px;
+    padding: 5px 13px;
     border-radius: 20px;
     border: 1.5px solid var(--border);
     background: transparent;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--warm-gray);
     cursor: pointer;
@@ -132,83 +149,19 @@
   .filter-btn:hover { border-color: var(--terra); color: var(--terra); }
   .filter-btn.active { background: var(--terra); border-color: var(--terra); color: white; }
 
+  .filter-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 4px;
+    flex-shrink: 0;
+  }
+
   /* MAIN LAYOUT */
   main {
     max-width: 1400px;
     margin: 0 auto;
     padding: 32px;
-  }
-
-  /* HERO */
-  .hero {
-    background: var(--ink);
-    border-radius: 16px;
-    padding: 48px;
-    margin-bottom: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 32px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .hero::before {
-    content: '';
-    position: absolute;
-    right: -60px;
-    top: -60px;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(196,81,42,0.3), transparent 70%);
-  }
-
-  .hero-text h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2rem, 4vw, 3.2rem);
-    color: var(--cream);
-    line-height: 1.15;
-    margin-bottom: 12px;
-  }
-
-  .hero-text h1 em { color: var(--terra); font-style: italic; }
-
-  .hero-text p {
-    color: rgba(250,246,239,0.65);
-    font-size: 1rem;
-    line-height: 1.6;
-    max-width: 480px;
-  }
-
-  .hero-badges {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-    flex-wrap: wrap;
-  }
-
-  .badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: 1px solid rgba(250,246,239,0.2);
-    font-size: 0.8rem;
-    color: rgba(250,246,239,0.7);
-  }
-
-  .badge-icon { font-size: 1rem; }
-
-  .hero-number {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(5rem, 12vw, 10rem);
-    font-weight: 700;
-    color: rgba(196,81,42,0.25);
-    line-height: 1;
-    position: relative;
-    z-index: 1;
-    user-select: none;
   }
 
   /* RECIPE GRID */
@@ -616,8 +569,6 @@
 
   @media (max-width: 768px) {
     main { padding: 16px; }
-    .hero { padding: 28px; }
-    .hero-number { font-size: 5rem; }
     .modal-header, .modal-body { padding: 24px; }
     .filters-bar { padding: 0 16px; }
     .header-inner { padding: 14px 16px; }
@@ -640,34 +591,33 @@
 </header>
 
 <div class="filters-bar">
-  <div class="filters-inner" id="filterButtons">
-    <button class="filter-btn active" data-filter="all">🌍 All</button>
-    <button class="filter-btn" data-filter="asian">🌏 Asian</button>
-    <button class="filter-btn" data-filter="european">🇪🇺 European</button>
-    <button class="filter-btn" data-filter="middle-eastern">🌙 Middle Eastern</button>
-    <button class="filter-btn" data-filter="latin-american">🌮 Latin American</button>
-    <button class="filter-btn" data-filter="african">🌍 African</button>
-    <button class="filter-btn" data-filter="north-american">🦅 North American</button>
-    <button class="filter-btn" data-filter="under-30">⚡ Under 30 min</button>
-    <button class="filter-btn" data-filter="vegetarian">🥦 Vegetarian</button>
+  <div class="filters-inner">
+    <div class="filter-row" id="filterRegion">
+      <span class="filter-label">Region</span>
+      <button class="filter-btn active" data-filter="all" data-group="region">🌐 All</button>
+      <button class="filter-btn" data-filter="asian" data-group="region">🌏 Asian</button>
+      <button class="filter-btn" data-filter="european" data-group="region">🇪🇺 European</button>
+      <button class="filter-btn" data-filter="middle-eastern" data-group="region">🌙 Middle Eastern</button>
+      <button class="filter-btn" data-filter="latin-american" data-group="region">🌮 Latin American</button>
+      <button class="filter-btn" data-filter="african" data-group="region">🌍 African</button>
+      <button class="filter-btn" data-filter="north-american" data-group="region">🦅 North American</button>
+    </div>
+    <div class="filter-row" id="filterMeta">
+      <span class="filter-label">Filter</span>
+      <button class="filter-btn" data-filter="vegetarian" data-group="meta">🥦 Vegetarian</button>
+      <div class="filter-divider"></div>
+      <button class="filter-btn" data-filter="easy" data-group="meta">⭐ Easy</button>
+      <button class="filter-btn" data-filter="medium" data-group="meta">⭐⭐ Medium</button>
+      <button class="filter-btn" data-filter="advanced" data-group="meta">⭐⭐⭐ Advanced</button>
+      <div class="filter-divider"></div>
+      <button class="filter-btn" data-filter="under-15" data-group="meta">⚡ Under 15 min</button>
+      <button class="filter-btn" data-filter="under-30" data-group="meta">🕐 Under 30 min</button>
+      <button class="filter-btn" data-filter="under-60" data-group="meta">⏱ Under 60 min</button>
+    </div>
   </div>
 </div>
 
 <main>
-  <div class="hero">
-    <div class="hero-text">
-      <h1>Cook the <em>World,</em><br>One Day at a Time</h1>
-      <p>365 authentic, easy-to-make recipes from every corner of the globe. Simple ingredients, real cookware, no processed foods — ready in under 60 minutes.</p>
-      <div class="hero-badges">
-        <div class="badge"><span class="badge-icon">⏱️</span> Under 60 min</div>
-        <div class="badge"><span class="badge-icon">🛒</span> Simple ingredients</div>
-        <div class="badge"><span class="badge-icon">🌱</span> No processed foods</div>
-        <div class="badge"><span class="badge-icon">🍳</span> Basic cookware</div>
-      </div>
-    </div>
-    <div class="hero-number">365</div>
-  </div>
-
   <div class="section-header">
     <h2 class="section-title">All Recipes</h2>
     <span class="section-count" id="visibleCount">Loading…</span>
@@ -1080,7 +1030,8 @@ const SEED_RECIPES = [
 // ─── STATE ─────────────────────────────────────────────────────────────────────
 let allRecipes = [...SEED_RECIPES];
 let filteredRecipes = [...allRecipes];
-let activeFilter = 'all';
+let activeRegion = 'all';
+let activeMeta = null;
 let searchQuery = '';
 const TARGET = 365;
 
@@ -1095,12 +1046,18 @@ function applyFilters() {
       r.country.toLowerCase().includes(searchQuery) ||
       r.desc.toLowerCase().includes(searchQuery);
 
-    const matchFilter = activeFilter === 'all' ||
-      (activeFilter === 'vegetarian' && r.vegetarian) ||
-      (activeFilter === 'under-30' && r.time <= 30) ||
-      r.region === activeFilter;
+    const matchRegion = activeRegion === 'all' || r.region === activeRegion;
 
-    return matchSearch && matchFilter;
+    const matchMeta = !activeMeta ||
+      (activeMeta === 'vegetarian' && r.vegetarian) ||
+      (activeMeta === 'easy' && r.difficulty === 1) ||
+      (activeMeta === 'medium' && r.difficulty === 2) ||
+      (activeMeta === 'advanced' && r.difficulty === 3) ||
+      (activeMeta === 'under-15' && r.time <= 15) ||
+      (activeMeta === 'under-30' && r.time <= 30) ||
+      (activeMeta === 'under-60' && r.time <= 60);
+
+    return matchSearch && matchRegion && matchMeta;
   });
 
   renderGrid();
@@ -1188,12 +1145,27 @@ document.getElementById('searchInput').addEventListener('input', e => {
   applyFilters();
 });
 
-document.getElementById('filterButtons').addEventListener('click', e => {
+document.querySelector('.filters-inner').addEventListener('click', e => {
   const btn = e.target.closest('.filter-btn');
   if (!btn) return;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  activeFilter = btn.dataset.filter;
+  const group = btn.dataset.group;
+  const filter = btn.dataset.filter;
+
+  if (group === 'region') {
+    document.querySelectorAll('[data-group="region"]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeRegion = filter;
+  } else if (group === 'meta') {
+    // Toggle meta filters off if clicking active one
+    if (btn.classList.contains('active')) {
+      btn.classList.remove('active');
+      activeMeta = null;
+    } else {
+      document.querySelectorAll('[data-group="meta"]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeMeta = filter;
+    }
+  }
   applyFilters();
 });
 
